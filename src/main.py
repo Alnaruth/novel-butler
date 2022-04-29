@@ -1,4 +1,4 @@
-from novelButtler import NovelButtler
+from novelButler import NovelButtler
 
 def main():
     nb = NovelButtler()
