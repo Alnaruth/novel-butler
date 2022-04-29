@@ -28,6 +28,7 @@ after_url = driver.current_url
 if before_url == after_url:
 	print('LAST CHAPTER')
 	exit()
+	#test
 else:
 	print('not last chapter')
 
