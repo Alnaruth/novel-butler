@@ -1,0 +1,2 @@
+class UnsupportedBrowserException(Exception):
+    pass
