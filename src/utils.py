@@ -1,6 +1,10 @@
 import logging
 
 
+def clear():
+    print('\n' * 50)
+
+
 class Utils:
     """
         Class containing general utilities: functions and data structures
@@ -28,3 +32,6 @@ class Utils:
         self.supported_browsers = [
             'chrome'
         ]
+
+        # class name of the first result on a google search
+        self.first_classname = 'iUh30'
