@@ -1,5 +1,7 @@
 import logging
 import time
+import os
+import traceback
 
 # web navigation imports
 from selenium.webdriver import Chrome
@@ -17,8 +19,9 @@ import utils
 from exceptions import UnsupportedBrowserException
 
 # site handlers
-from site_interface import SiteInterface
 from noveltop1 import Noveltop1
+from novel_saver import NovelSaver
+from ligthNovelPub import LightNovelPub
 
 
 class NovelButtler:
@@ -27,12 +30,17 @@ class NovelButtler:
         {
             'url': 'noveltop1.com',
             'handler': Noveltop1
+        },
+        {
+            'url': 'lightnovelpub.com',
+            'handler': LightNovelPub
         }
     ]
     google_open = False
     connection_timeout = 2
 
-    def __init__(self, browser='chrome', log_level='info'):
+    def __init__(self, browser='chrome', log_level='info', headless=True):
+        self.headless_browser = headless
         self.utils = utils.Utils()
         self._init_logging(log_level)
         self._init_driver(browser)
@@ -59,6 +67,7 @@ class NovelButtler:
             browser_options = ChromeOptions()
             browser_options.headless = self.headless_browser
             self.browser = Chrome(service=Service(browser_driver), options=browser_options)
+            self.browser.maximize_window()
         utils.clear()
         if not browser_driver or not browser_options:
             logging.error('Unknown error initializing web divers')
@@ -76,16 +85,18 @@ class NovelButtler:
     def _browser_wait(self, search_by, parameter):
         result = None
         try:
-            result = WebDriverWait(self.browser, timeout=self.connection_timeout).until(EC.presence_of_element_located((search_by, parameter)))
+            result = WebDriverWait(self.browser, timeout=self.connection_timeout).until(
+                EC.presence_of_element_located((search_by, parameter)))
         except TimeoutException:
-            logging.error('Connection to google.com timed out')
-            self._exit()
+            return -1
         return result
 
     def _google_search(self, text_to_search):
         if not self.google_open:
             self._open_google()
         search = self._browser_wait(By.NAME, 'q')
+        if isinstance(search, int) and search == -1:
+            return search
         # search = self.browser.find_element(By.NAME, 'q')
         search.send_keys(text_to_search)
         search.send_keys(Keys.RETURN)
@@ -100,9 +111,19 @@ class NovelButtler:
     def _search_for_site(self, query):
         if not self.google_open:
             self._open_google()
-        self._google_search(query)
+        status = self._google_search(query)
+        if isinstance(status, int) and status < 0:
+            return status
         url = self._browser_wait(By.CLASS_NAME, self.utils.first_classname)
         return url
+
+    def _check_directory(self, title):
+        dir_path = '../books/' + title
+        if os.path.isdir(dir_path):
+            return None, -1
+        else:
+            os.mkdir(dir_path)
+        return dir_path, 0
 
     # ACCESSIBLE METHODS
 
@@ -113,7 +134,7 @@ class NovelButtler:
 
     def search_novel(self, title, oneshot_search=False):
         logging.info('Searching for the novel "{}"'.format(title))
-
+        search_results = []
         query = '{} site:{}'
         if oneshot_search:
             sites = [self.site_list[0]]
@@ -124,4 +145,57 @@ class NovelButtler:
             obj = site['handler'](self.browser)
             site_url = site['url']
             first_result = self._search_for_site(query.format(title, site_url))
-            obj.handle_search(first_result)
+            if isinstance(first_result, int) and first_result == -1:
+                continue
+            title, last_chapter, first_chapter_url = obj.handle_search(first_result)
+            search_result = {'site': site_url, 'title': title.lower(), 'last_chapter': last_chapter,
+                             'first_chapter_url': first_chapter_url}
+            search_results.append(search_result)
+        return search_results
+
+    def download_novel(self, site_info, starting_chapter=0, ending_chapter=None):
+        obj = None
+        status_code = 0
+        try:
+            dir_path, status_code = self._check_directory(title=site_info['title'])
+        except Exception as e:
+            logging.error('Unknown exception' + traceback.format_exc())
+            return status_code
+        if status_code < 0:
+            return status_code
+
+        output_path = dir_path
+
+        for site in self.site_list:
+            if site['url'] == site_info['site']:
+                obj = site['handler'](self.browser)
+                break
+        if obj is None:
+            logging.error('no match between selected site and site handlers')
+        text = obj.get_text(site_info, starting_chapter=starting_chapter, ending_chapter=ending_chapter)
+
+        novel_saver = NovelSaver()
+        print(site_info)
+        novel_saver.save_epub(text=text, path=output_path, title=site_info['title'])
+        return status_code
+
+    def menu(self, novel_to_search=None):
+        self._print_intro()
+        if novel_to_search is None:
+            novel_to_search = input('Insert novel to search: ')
+        results = self.search_novel(novel_to_search)
+        row_template = '{0:<30}{1:<20}{2:<10}'
+        if len(results) == 0:
+            print('NO RESULT FOUND IN ANY SITE')
+            return
+        print('Risultati: \n' + row_template.format('TITLE', 'SITE', 'LAST CHAPTER'))
+        for result in results:
+            print(row_template.format(result['title'], result['site'], result['last_chapter']))
+
+    def _print_intro(self):
+        with open('../images/icon_1.txt') as icon:
+            print(icon.read())
+        with open('../images/logo.txt') as logo:
+            print(logo.read())
+
+        print('\n\n')
