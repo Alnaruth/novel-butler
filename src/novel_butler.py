@@ -4,6 +4,7 @@ import os
 import traceback
 
 # web navigation imports
+import undetected_chromedriver.v2 as uc
 from selenium.webdriver import Chrome
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
@@ -21,7 +22,7 @@ from exceptions import UnsupportedBrowserException
 # site handlers
 from noveltop1 import Noveltop1
 from novel_saver import NovelSaver
-from ligthNovelPub import LightNovelPub
+from lightNovelPub import LightNovelPub
 
 
 class NovelButtler:
@@ -66,7 +67,8 @@ class NovelButtler:
             browser_driver = ChromeDriverManager().install()
             browser_options = ChromeOptions()
             browser_options.headless = self.headless_browser
-            self.browser = Chrome(service=Service(browser_driver), options=browser_options)
+            #browser_options.add_argument('--disable-blink-features=AutomationControlled')
+            self.browser = uc.Chrome(service=Service(browser_driver), options=browser_options)  # Chrome()
             self.browser.maximize_window()
         utils.clear()
         if not browser_driver or not browser_options:
@@ -120,7 +122,7 @@ class NovelButtler:
     def _check_directory(self, title):
         dir_path = '../books/' + title
         if os.path.isdir(dir_path):
-            return None, -1
+            return dir_path, 0
         else:
             os.mkdir(dir_path)
         return dir_path, 0
@@ -153,6 +155,27 @@ class NovelButtler:
             search_results.append(search_result)
         return search_results
 
+    def debug_search_novel(self, title, oneshot_search=False):
+        logging.info('Searching for the novel "{}"'.format(title))
+        search_results = []
+        query = '{} site:{}'
+        if oneshot_search:
+            sites = [self.site_list[0]]
+        else:
+            sites = self.site_list.copy()
+
+        site = sites[1]
+        obj = site['handler'](self.browser)
+        site_url = site['url']
+        first_result = self._search_for_site(query.format(title, site_url))
+        if isinstance(first_result, int) and first_result == -1:
+            return None
+        title, last_chapter, first_chapter_url = obj.handle_search(first_result)
+        search_result = {'site': site_url, 'title': title.lower(), 'last_chapter': last_chapter,
+                         'first_chapter_url': first_chapter_url}
+        search_results.append(search_result)
+        return search_results
+
     def download_novel(self, site_info, starting_chapter=0, ending_chapter=None):
         obj = None
         status_code = 0
@@ -179,18 +202,58 @@ class NovelButtler:
         novel_saver.save_epub(text=text, path=output_path, title=site_info['title'])
         return status_code
 
+    def debug_download_novel(self, site_info, starting_chapter=0, ending_chapter=None):
+        obj = None
+        status_code = 0
+        try:
+            print('flag 1')
+            dir_path, status_code = self._check_directory(title=site_info['title'])
+        except Exception as e:
+            logging.error('Unknown exception' + traceback.format_exc())
+            return status_code
+        if status_code < 0:
+            return status_code
+
+        output_path = dir_path
+
+        site = self.site_list[1]
+
+        if site['url'] == site_info['site']:
+            obj = site['handler'](self.browser)
+            return None
+        if obj is None:
+            logging.error('no match between selected site and site handlers')
+            return
+        text = obj.get_text(site_info, starting_chapter=starting_chapter, ending_chapter=ending_chapter)
+
+        novel_saver = NovelSaver()
+        print(site_info)
+        novel_saver.save_epub(text=text, path=output_path, title=site_info['title'])
+        return status_code
+
     def menu(self, novel_to_search=None):
         self._print_intro()
         if novel_to_search is None:
-            novel_to_search = input('Insert novel to search: ')
+            novel_to_search = input('Insert novel to search, q to quit: ')
+        if novel_to_search == 'q':
+            exit()
         results = self.search_novel(novel_to_search)
         row_template = '{0:<30}{1:<20}{2:<10}'
         if len(results) == 0:
             print('NO RESULT FOUND IN ANY SITE')
             return
         print('Risultati: \n' + row_template.format('TITLE', 'SITE', 'LAST CHAPTER'))
+        count = 0
         for result in results:
-            print(row_template.format(result['title'], result['site'], result['last_chapter']))
+            print(f'{count+1}) ' + row_template.format(result['title'], result['site'], result['last_chapter']))
+
+        choice = int(input('insert number to download full novel, 0 to exit -> '))
+        if choice == 0:
+            return
+        if self.download_novel(results[choice-1], starting_chapter=0, ending_chapter=100) >= 0:
+            print('download successfull')
+        else:
+            print('Error downloading novel')
 
     def _print_intro(self):
         with open('../images/icon_1.txt') as icon:

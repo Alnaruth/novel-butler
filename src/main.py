@@ -11,7 +11,11 @@ def main():
 
     #print(text)
 
-    nb.menu('djfbsdjfb')
+    while True:
+        nb.menu()
+    #infos = nb.debug_search_novel('only i level up')
+    #print(infos)
+    #print(nb.debug_download_novel(infos[0], ending_chapter=3))
 
 if __name__ == '__main__':
     main()

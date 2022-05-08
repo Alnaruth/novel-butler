@@ -44,5 +44,5 @@ class SiteInterface:
         pass
 
     # returns text as string
-    def get_text(self, info, starting_chapter=0, ending_chapter=None):
+    def get_text(self, infos, starting_chapter=1, ending_chapter=None):
         pass
