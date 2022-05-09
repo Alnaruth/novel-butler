@@ -14,6 +14,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
+from googlesearch import search
+import requests, json
+
 # local module imports
 import utils
 from exceptions import UnsupportedBrowserException
@@ -125,6 +128,19 @@ class NovelButtler:
             os.mkdir(dir_path)
         return dir_path, 0
 
+    def _get_element_url(self, element) -> str:
+        url = self.browser.current_url
+
+        headers = {
+            'User-agent':
+                "useragent"
+        }
+        html = requests.get('https://www.google.com/search?q=hello', headers=headers).text
+        #soup = BeautifulSoup(html, 'lxml')
+        # locating div element with a tF2Cxc class
+        # calling for <a> tag and then calling for 'href' attribute
+        #link = soup.find('div', class_='tF2Cxc').a['href']
+        return html
     # ACCESSIBLE METHODS
 
     def test_browser(self, url='https://www.google.com'):
@@ -147,6 +163,9 @@ class NovelButtler:
             first_result = self._search_for_site(query.format(title, site_url))
             if isinstance(first_result, int) and first_result == -1:
                 continue
+            first_result_url = self._get_element_url(first_result)
+            print(f'result url {first_result_url}')
+            exit()
             title, last_chapter, first_chapter_url = obj.handle_search(first_result)
             search_result = {'site': site_url, 'title': title.lower(), 'last_chapter': last_chapter,
                              'first_chapter_url': first_chapter_url}

@@ -1,26 +1,7 @@
 import pypandoc
-import aspose.words as aw
 
 
 class NovelSaver:
-    def save_pdf(self, text, path):
-        text = text
-
-        #print(text)
-
-        doc = aw.Document()
-        builder = aw.DocumentBuilder(doc)
-        builder.write(text)
-        doc.save(path)
-        '''pdf = FPDF()
-        pdf.add_page()
-
-        pdf.set_font("Arial", size=15)
-        with open('tmp.txt', 'rb') as fh:
-            txt = fh.read()
-            pdf.multi_cell(0, 5, txt)
-        pdf.output(path)
-        '''
     def save_epub(self, text, path, title):
         epub_path = path + title + '.epub'
         txt_path = self._save_txt(text, path, title)

@@ -10,8 +10,8 @@ class Noveltop1(SiteInterface):
         super().__init__(browser)
         self.url = 'noveltop1.com'
 
-    def handle_search(self, page):
-        title = self._get_title(page)
+    def handle_search(self, element):
+        title = self._get_title(element)
         first_url = self.browser.current_url
         latest_chapter = self._get_latest_chapter()
 

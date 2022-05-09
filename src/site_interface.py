@@ -40,7 +40,7 @@ class SiteInterface:
         exit()
 
     # returns title, last_chapter, first_chapter_url
-    def handle_search(self, page):
+    def handle_search(self, element):
         pass
 
     # returns text as string
