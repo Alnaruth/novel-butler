@@ -26,7 +26,9 @@ class Noveltop1(SiteInterface):
         previous_url = None
         current_url = self.browser.current_url
 
-        while current_url != previous_url and starting_chapter <= chapter_count <= ending_chapter:
+        while current_url != previous_url and starting_chapter <= chapter_count and (
+                ending_chapter is None or chapter_count <= ending_chapter):
+            print(f'reading chapter {chapter_count}')
             text += self.browser.find_element(self.By.ID, self.chapter_content_id).text
             chapter_count += 1
             previous_url = current_url
