@@ -1,6 +1,6 @@
 from requests import HTTPError
 
-from novel_butler_v2 import NovelButler
+from novel_butler import NovelButler
 
 from googleapiclient.discovery import build
 import pprint
@@ -13,7 +13,7 @@ def google_search(search_term, api_key, cse_id, **kwargs):
 
 
 def main():
-    nb = NovelButler()
+    nb = NovelButler(headless=False)
     nb.search_novel('only I level up')
 
 

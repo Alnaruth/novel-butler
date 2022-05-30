@@ -4,7 +4,7 @@ import os
 import traceback
 
 # web navigation imports
-import undetected_chromedriver.v2 as uc
+#import undetected_chromedriver.v2 as uc
 from selenium.webdriver import Chrome
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
@@ -28,7 +28,7 @@ from novel_saver import NovelSaver
 from lightNovelPub import LightNovelPub
 
 
-class NovelButtler:
+class NovelButler:
     headless_browser = False
     site_list = [
         {
@@ -71,7 +71,7 @@ class NovelButtler:
             browser_options = ChromeOptions()
             browser_options.headless = self.headless_browser
             #browser_options.add_argument('--disable-blink-features=AutomationControlled')
-            self.browser = uc.Chrome(service=Service(browser_driver), options=browser_options)  # Chrome()
+            self.browser = Chrome(service=Service(browser_driver), options=browser_options)  # Chrome()
             self.browser.maximize_window()
         utils.clear()
         if not browser_driver or not browser_options:
