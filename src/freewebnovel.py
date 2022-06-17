@@ -10,10 +10,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 import os
-
+import sys
 
 class FreeWebNovel:
     connection_timeout = 5
+    title = ''
 
     def __init__(self):
         browser_driver = ChromeDriverManager().install()
@@ -31,13 +32,13 @@ class FreeWebNovel:
             return -1
         return result
 
-    def _get_novel_text(self, first_chap_url):
+    def _get_novel_text(self, first_chap_url, limit):
         self.browser.get(first_chap_url)
         last_chap = False
         text = ''
         chap_count = 1
-        while not last_chap:
-            print('downloading chapter ', chap_count)
+        while not last_chap and (limit is None or limit > chap_count):
+            print(f'{self.title}: downloading chapter {chap_count}')
             chap_count += 1
             try:
                 text += self._browser_wait(By.CLASS_NAME, value='txt').text
@@ -49,18 +50,32 @@ class FreeWebNovel:
 
         return text
 
-    def download_novel(self, first_chap_url, title):
-        text = self._get_novel_text(first_chap_url)
+    def download_novel(self, first_chap_url, title, limit=None):
+        self.title = title
+        text = self._get_novel_text(first_chap_url, limit)
         out_path = '../books/' + title.lower().replace(' ', '-')
         if not os.path.isdir(out_path):
             os.mkdir(out_path)
         out_path += f'/{title}.txt'
-        with open(out_path, 'w') as file:
+        #text = text.encode(sys.stdout.encoding, errors='replace').
+        #print(text)
+        with open(out_path, 'w', encoding='utf-8') as file:
             file.write(text)
+
 
 def main():
     fwn = FreeWebNovel()
-    fwn.download_novel('https://freewebnovel.com/shadow-slave/chapter-1.html', 'Shadow Slave')
+    choice = ''
+
+    download_list = [
+        {
+            'url': 'https://freewebnovel.com/guild-wars/chapter-1.html',
+            'title': 'Guild Wars'
+        }
+    ]
+
+    for download in download_list:
+        fwn.download_novel(download['url'], download['title'], limit=500)
 
 
 if __name__ == '__main__':
