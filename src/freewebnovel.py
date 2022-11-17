@@ -1,82 +1,118 @@
-from selenium.webdriver import Chrome
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-# test for commit
-import os
-import sys
+# test url: https://freewebnovel.com/only-i-level-up-novel/chapter-1.html
 
-class FreeWebNovel:
-    connection_timeout = 5
-    title = ''
+import requests
+from pprint import pprint
 
-    def __init__(self):
-        browser_driver = ChromeDriverManager().install()
-        browser_options = ChromeOptions()
-        browser_options.headless = True
-        self.browser = Chrome(service=Service(browser_driver), options=browser_options)
-        self.browser.maximize_window()
+class NovelDownloader:
+    _test_url = 'https://freewebnovel.com/death-guns-in-another-world/chapter-1.html'
+    _headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 
-    def _browser_wait(self, search_by, value):
-        result = None
-        try:
-            result = WebDriverWait(self.browser, timeout=self.connection_timeout).until(
-                EC.presence_of_element_located((search_by, value)))
-        except TimeoutException:
-            return -1
-        return result
+    _base_url = 'https://freewebnovel.com'
 
-    def _get_novel_text(self, first_chap_url, limit):
-        self.browser.get(first_chap_url)
-        last_chap = False
-        text = ''
-        chap_count = 1
-        while not last_chap and (limit is None or limit > chap_count):
-            print(f'{self.title}: downloading chapter {chap_count}')
-            chap_count += 1
-            try:
-                text += self._browser_wait(By.CLASS_NAME, value='txt').text
-                next_button = self.browser.find_element(By.ID, value='next_url')
-                next_button.click()
-            except NoSuchElementException:
-                last_chap = True
-            text += '\n\n\f\n\n'
+    def download_novel(self, title, url, limit=None):
+        current_chapter = 0
 
+        keep_downloading = True
+
+        chapters = []
+
+        print(f'\t\tStarting download of the novel {title}...\n\n')
+
+        while keep_downloading:
+            current_chapter += 1
+            print(f'Currently downloading chapter {current_chapter}')
+            content = self._get_page_content(url)
+            text, next_url = self._mine_data(content)
+            chapters.append(text)
+            url = next_url
+
+            if current_chapter == limit:
+                print('\n\nReached prefixed download limit, stopping...\n\n')
+                keep_downloading = False
+            elif url is None:
+                print('\n\nReached last detectable chapter, stopping... \n\n')
+                keep_downloading = False
+            else:
+                url = self._base_url + url
+
+        return chapters
+
+    def _get_page_content(self, url):
+        response = requests.get(url, headers=self._headers)
+        if response.status_code == 200:
+            return response.text
+        print('Error ', response.status_code)
+        return None
+
+    def _mine_data(self, content):
+        text = self._mine_text(content)
+        text = self._sanitize_text(text)
+
+        next_url = self._find_next_chapter(content)
+        return text, next_url
+
+    def _find_next_chapter(self, content):
+        page = content.split('<')
+        links = []
+        for line in page:
+            if 'href' in line and '"next_url"' in line:
+                sections = line.split('"')
+                for section in sections:
+                    if 'chapter' in section.lower() and '/' in section:
+                        return section
+        return None
+
+    def _sanitize_text(self, text: str):
+        special_chars = {
+                '&lt;': '<',
+                '&gt;': '>'
+            }
+        for key, value in special_chars.items():
+            text = text.replace(key, value)
         return text
 
-    def download_novel(self, first_chap_url, title, limit=None):
-        self.title = title
-        text = self._get_novel_text(first_chap_url, limit)
-        out_path = '../books/' + title.lower().replace(' ', '-')
-        if not os.path.isdir(out_path):
-            os.mkdir(out_path)
-        out_path += f'/{title}.txt'
-        #text = text.encode(sys.stdout.encoding, errors='replace').
-        #print(text)
-        with open(out_path, 'w', encoding='utf-8') as file:
-            file.write(text)
+    def _mine_text(self, content):
+        split_content = content.split('class="chapter-start"')
+        chapter_body = split_content[1].split('class="chapter-end"')[0]
+
+        lines = chapter_body.split('\r')
+        paragraphs = []
+        for line in lines:
+            if '<p>' in line:
+                paragraphs.append(line.split('<p>'))
+
+        grouped_paragraphs = []
+        for p in paragraphs:
+            if '<sub>' not in p[1] and '</p>' not in p[1] and '<h' not in p[1]:
+                grouped_paragraphs.append(p[1])
+            elif '</p>' in p[1] and '<sub>' not in p[1] and '<h' not in p[1]:
+                tmp = p[1].split('</p>')
+                grouped_paragraphs.append(tmp[0])
+
+            if len(p) > 2:
+                grouped_paragraphs.append(p[2])
+        text = ''
+        for paragraph in grouped_paragraphs:
+            text += paragraph
+            text += '\n'
+        return text
+
+    def test(self):
+        content = self._get_page_content(self._test_url)
+        if not content:
+            return None
+
+        result = self._mine_data(content)
+        pprint(result)
 
 
-def main():
-    fwn = FreeWebNovel()
-    choice = ''
+def test_downloader():
+    nd = NovelDownloader()
 
-    download_list = [
-        {
-            'url': 'https://freewebnovel.com/guild-wars/chapter-1.html',
-            'title': 'Guild Wars'
-        }
-    ]
-
-    for download in download_list:
-        fwn.download_novel(download['url'], download['title'], limit=500)
-
-
+    chapters = nd.download_novel('solo leveling', 'https://freewebnovel.com/only-i-level-up-novel/chapter-1.html', 2)
+    i = 0
+    for chapter in chapters:
+        i += 1
+        print(f'CHAPTER {i}:\n {chapter}\n\n\n')
 if __name__ == '__main__':
-    main()
+    test_downloader()

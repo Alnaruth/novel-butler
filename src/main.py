@@ -1,30 +1,28 @@
-from requests import HTTPError
-
 from novel_butler import NovelButler
 
-from googleapiclient.discovery import build
-import pprint
-
-
-def google_search(search_term, api_key, cse_id, **kwargs):
-    service = build("customsearch", "v1", developerKey=api_key)
-    res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
-    return res['items']
+download_list = [
+    {
+        'title': 'Only I level up',
+        'first_chapter_url': 'https://freewebnovel.com/only-i-level-up-novel/chapter-1.html',
+        'chapter_limit': 2
+    },
+    {
+        'title': 'Death guns in another world',
+        'first_chapter_url': 'https://freewebnovel.com/death-guns-in-another-world/chapter-1.html',
+        'chapter_limit': 1
+    },
+]
 
 
 def main():
-    nb = NovelButler(headless=False)
-    nb.search_novel('only I level up')
+    nb = NovelButler()
 
-
-def test():
-    my_cse_id = ''
-    my_api_key = ''
-    results = google_search(
-        'stackoverflow site:en.wikipedia.org', my_api_key, my_cse_id, num=1)
-    for result in results:
-        pprint.pprint(result)
+    for book in download_list:
+        nb.get_novel(title=book['title'], first_chapter_url=book['first_chapter_url'],
+                     chapter_limit=book['chapter_limit'], site='FreeWebnovel')
 
 
 if __name__ == '__main__':
     main()
+
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/
