@@ -1,9 +1,9 @@
 # test url: https://freewebnovel.com/only-i-level-up-novel/chapter-1.html
 
-import requests
 from pprint import pprint
+from abstract_novel_downloader import AbstractNovelDownloader
 
-class NovelDownloader:
+class NovelDownloader(AbstractNovelDownloader):
     _test_url = 'https://freewebnovel.com/death-guns-in-another-world/chapter-1.html'
     _headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 
@@ -36,9 +36,15 @@ class NovelDownloader:
                 url = self._base_url + url
 
         return chapters
+    def search_novel(self, title):
+        body = {
+
+        }
+        super()._post_request(self._base_url + '/search/')
+
 
     def _get_page_content(self, url):
-        response = requests.get(url, headers=self._headers)
+        response = super().get_request(url=url, headers=self._headers)
         if response.status_code == 200:
             return response.text
         print('Error ', response.status_code)
@@ -94,7 +100,7 @@ class NovelDownloader:
         text = ''
         for paragraph in grouped_paragraphs:
             text += paragraph
-            text += '\n'
+            text += '\n\n\r'
         return text
 
     def test(self):
@@ -114,5 +120,6 @@ def test_downloader():
     for chapter in chapters:
         i += 1
         print(f'CHAPTER {i}:\n {chapter}\n\n\n')
+
 if __name__ == '__main__':
     test_downloader()

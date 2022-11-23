@@ -5,7 +5,7 @@
       <excludeFolder url="file://$MODULE_DIR$/books/dungeon of pride, laplace" />
       <excludeFolder url="file://$MODULE_DIR$/books/i alone level-up (web novel kr)" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

@@ -4,13 +4,18 @@ download_list = [
     {
         'title': 'Only I level up',
         'first_chapter_url': 'https://freewebnovel.com/only-i-level-up-novel/chapter-1.html',
-        'chapter_limit': 2
+        'chapter_limit': None
     },
     {
         'title': 'Death guns in another world',
         'first_chapter_url': 'https://freewebnovel.com/death-guns-in-another-world/chapter-1.html',
-        'chapter_limit': 1
+        'chapter_limit': 500
     },
+    {
+        'title': 'Level up legacy',
+        'first_chapter_url': 'https://freewebnovel.com/level-up-legacy/chapter-2.html',
+        'chapter_limit': 500
+    }
 ]
 
 
