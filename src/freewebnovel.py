@@ -44,7 +44,7 @@ class NovelDownloader(AbstractNovelDownloader):
 
 
     def _get_page_content(self, url):
-        response = super().get_request(url=url, headers=self._headers)
+        response = super()._get_request(url=url, headers=self._headers)
         if response.status_code == 200:
             return response.text
         print('Error ', response.status_code)
@@ -59,7 +59,6 @@ class NovelDownloader(AbstractNovelDownloader):
 
     def _find_next_chapter(self, content):
         page = content.split('<')
-        links = []
         for line in page:
             if 'href' in line and '"next_url"' in line:
                 sections = line.split('"')

@@ -2,18 +2,28 @@ from novel_butler import NovelButler
 
 download_list = [
     {
-        'title': 'Only I level up',
-        'first_chapter_url': 'https://freewebnovel.com/only-i-level-up-novel/chapter-1.html',
-        'chapter_limit': None
-    },
-    {
-        'title': 'Death guns in another world',
-        'first_chapter_url': 'https://freewebnovel.com/death-guns-in-another-world/chapter-1.html',
+        'title': 'Guild Wars',
+        'first_chapter_url': 'https://freewebnovel.com/guild-wars/chapter-1.html',
         'chapter_limit': 500
     },
     {
-        'title': 'Level up legacy',
-        'first_chapter_url': 'https://freewebnovel.com/level-up-legacy/chapter-2.html',
+        'title': 'Will of Chaos',
+        'first_chapter_url': 'https://freewebnovel.com/will-of-chaos/chapter-1.html',
+        'chapter_limit': 500
+    },
+    {
+        'title': 'Death... and me',
+        'first_chapter_url': 'https://freewebnovel.com/death-and-me/chapter-1.html',
+        'chapter_limit': 500
+    },
+    {
+        'title': 'The great mage returns after 4000 years',
+        'first_chapter_url': 'https://freewebnovel.com/the-great-mage-returns-after-4000-years/chapter-1.html',
+        'chapter_limit': 500
+    },
+    {
+        'title': 'Magi craft Meister',
+        'first_chapter_url': 'https://freewebnovel.com/magi-craft-meister/chapter-1.html',
         'chapter_limit': 500
     }
 ]
