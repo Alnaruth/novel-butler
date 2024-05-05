@@ -2,30 +2,16 @@ from novel_butler import NovelButler
 
 download_list = [
     {
-        'title': 'Guild Wars',
-        'first_chapter_url': 'https://freewebnovel.com/guild-wars/chapter-1.html',
-        'chapter_limit': 500
+        'title': 'ATTICUS\'S ODYSSEY - REINCARNATED INTO A PLAYGROUND',
+        'first_chapter_url': 'https://freewebnovel.noveleast.com/atticuss-odyssey-reincarnated-into-a-playground/chapter-1',
+        'chapter_limit': 250,
+        'chapter_offset': 0
+    },{
+        'title': 'LORD OF THE MYSTERIES',
+        'first_chapter_url': 'https://freewebnovel.noveleast.com/lord-of-the-mysteries/chapter-1',
+        'chapter_limit': 250,
+        'chapter_offset': 0
     },
-    {
-        'title': 'Will of Chaos',
-        'first_chapter_url': 'https://freewebnovel.com/will-of-chaos/chapter-1.html',
-        'chapter_limit': 500
-    },
-    {
-        'title': 'Death... and me',
-        'first_chapter_url': 'https://freewebnovel.com/death-and-me/chapter-1.html',
-        'chapter_limit': 500
-    },
-    {
-        'title': 'The great mage returns after 4000 years',
-        'first_chapter_url': 'https://freewebnovel.com/the-great-mage-returns-after-4000-years/chapter-1.html',
-        'chapter_limit': 500
-    },
-    {
-        'title': 'Magi craft Meister',
-        'first_chapter_url': 'https://freewebnovel.com/magi-craft-meister/chapter-1.html',
-        'chapter_limit': 500
-    }
 ]
 
 
@@ -34,7 +20,7 @@ def main():
 
     for book in download_list:
         nb.get_novel(title=book['title'], first_chapter_url=book['first_chapter_url'],
-                     chapter_limit=book['chapter_limit'], site='FreeWebnovel')
+                     chapter_limit=book['chapter_limit'], site='FreeWebnovel', chapter_offset=book['chapter_offset'])
 
 
 if __name__ == '__main__':
